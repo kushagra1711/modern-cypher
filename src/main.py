@@ -59,11 +59,13 @@ def print_table():
 
 def setkeysize(key):
     key = key.encode()
-    if len(key) < 16:
-        key = key * (16 // len(key)) + key[: 16 % len(key)]
-    elif len(key) > 16:
-        key = key[:16]
-    return key
+    if len(key) < 12:
+        key = key * (12 // len(key)) + key[: 12 % len(key)]
+    elif len(key) > 12:
+        key = key[:12]
+    key = base64.b64encode(key)
+    assert len(key) % 16 == 0
+    return key.decode()
 
 
 def encrypt(message, key):
