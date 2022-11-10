@@ -69,37 +69,39 @@ def setkeysize(key):
 
 
 def encrypt(message, key):
-    orig_len = len(message)
-    message = message.encode()
+    orig_len = len(message) #storing the length of the key
+    message = message.encode() #we use encode to UTF-8
     while len(message) % 12 != 0:
-        message += chr(ord("a") + (len(message) % 26)).encode()
+        message += chr(ord("a") + (len(message) % 26)).encode() #padding the message with bytes
     message_len = str(orig_len)
     while len(message_len) % 12 != 0:
-        message_len = chr(ord("a") + (len(message_len) % 26)) + message_len
-    message += message_len.encode()
+        message_len = chr(ord("a") + (len(message_len) % 26)) + message_len  # concatination of msg with padded text and msg_len
+    message += message_len.encode() #UTF-8 encoding
 
     key = setkeysize(key)
 
+    
+
     encoded = base64.b64encode(message)
-    print(f"Original: {message}\nEncoded: {encoded.decode()}")
+    print(f"Original: {message}\nEncoded: {encoded.decode()}") #printing the padded message and the base64 encoded text
     encrypted = ""
     blocks = []
-    for i in range(len(encoded) // 16):
-        block = encoded[i * 16 : i * 16 + 16].decode()
-        blocks.append("")
+    for i in range(len(encoded) // 16): #breaking it into 16 bit blocks as 6bit turns to 8bit after base64 encoding
+        block = encoded[i * 16 : i * 16 + 16].decode() #block is sliced in 16 character words and this decode just converts utf-8 string to normal string
+        blocks.append("")  #blocks is an empty string that will store the base
         mixed = 0
         for byte in block:
-            mixed ^= from_base64(byte)
+            mixed ^= from_base64(byte) #calculating mixed wrt to the text in block of character, so unique every time
         final = ""
         for i in block:
-            final += to_base64(from_base64(i) ^ mixed)
+            final += to_base64(from_base64(i) ^ mixed) #xoring all character w mixed to make an encrypted text
         block = final
-        for (x, y) in zip(block, key):
-            blocks[-1] += substitute(x, y)
+        for (x, y) in zip(block, key): #zip corresponds to elements in the 2 lists into a single tuple
+            blocks[-1] += substitute(x, y) # substitute is the vigenere cipher table substitution
 
-        key = key[1:] + key[:1]
+        key = key[1:] + key[:1] #left circular shift
         for byte in block:
-            key = "".join(map(lambda x: xor(byte, x), key))
+            key = "".join(map(lambda x: xor(byte, x), key)) #xor all the elements in block with corresponding character in key
 
         encrypted = "".join(blocks)
 
@@ -114,19 +116,20 @@ def decrypt(encrypted, key):
     decrypted = base64.b64encode(encrypted)
     blocks = []
     for i in range(len(decrypted) // 16):
-        block = decrypted[i * 16 : i * 16 + 16].decode()
+        block = decrypted[i * 16 : i * 16 + 16].decode() #take 16 character blocks
         blocks.append("")
         for (x, y) in zip(block, key):
-            blocks[-1] += inv_substitute(x, y)
+            blocks[-1] += inv_substitute(x, y) #find the inverse substitute of the key
         inv_block = blocks[-1]
         thing = [0 for i in range(16)]
         for i in range(16):
             for j in range(16):
                 if i != j:
-                    thing[i] ^= from_base64(inv_block[j])
-        blocks[-1] = "".join(map(to_base64, thing))
+                    thing[i] ^= from_base64(inv_block[j]) #calculating the initial character before it was encrypted,converting to integer val of base64 char xoring again gives org. character
+        blocks[-1] = "".join(map(to_base64, thing)) #converting back to original plaintext
 
-        key = key[1:] + key[:1]
+
+        key = key[1:] + key[:1] #left circular shift
         for byte in blocks[-1]:
             key = "".join(map(lambda x: xor(byte, x), key))
 
@@ -148,6 +151,7 @@ def main():
     # print()
     decrypted = decrypt(encrypted, key)
     print(f"Message: {decrypted}")
+    # print_table()
 
 
 if __name__ == "__main__":
