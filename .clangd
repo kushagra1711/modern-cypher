@@ -1,0 +1,4 @@
+CompileFlags:
+  Add: [-Wall, -Wextra, -Wpedantic, -I/usr/include/c++/10, 
+        -I/usr/include/c++/10/bits, -I/usr/include/x86_64-linux-gnu/c++/10,
+        -I/usr/include/x86_64-linux-gnu/c++/10/bits, -std=c++20]
